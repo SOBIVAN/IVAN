@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Internet</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h2>Monitor de Desempenho da Internet</h2>
+    <canvas id="internetChart"></canvas>
+
+    <script src="script.js"></script>
+</body>
+</html>
+body { font-family: Arial, sans-serif; text-align: center; }
+canvas { max-width: 600px; margin: auto; display: block; }
+const ctx = document.getElementById("internetChart").getContext("2d");
+const data = {
+    labels: [],
+    datasets: [{
+        label: "Latência (ms)",
+        borderColor: "blue",
+        backgroundColor: "rgba(0, 0, 255, 0.2)",
+        data: [],
+        fill: true
+    }]
+};
+
+const config = {
+    type: "line",
+    data: data,
+    options: {
+        responsive: true,
+        scales: {
+            x: { title: { display: true, text: "Tempo" } },
+            y: { title: { display: true, text: "Latência (ms)" } }
+        }
+    }
+};
+
+const internetChart = new Chart(ctx, config);
+
+async function medirLatencia() {
+    const start = performance.now();
+    try {
+        await fetch("https://www.google.com", { mode: "no-cors" });
+    } catch (error) { }
+    const latency = performance.now() - start;
+
+    if (data.labels.length > 30) {
+        data.labels.shift();
+        data.datasets[0].data.shift();
+    }
+
+    data.labels.push(new Date().toLocaleTimeString());
+    data.datasets[0].data.push(latency.toFixed(2));
+
+    internetChart.update();
+}
+
+setInterval(medirLatencia, 1000);
